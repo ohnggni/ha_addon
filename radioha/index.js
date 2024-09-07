@@ -12,6 +12,38 @@ const instance = axios.create({
     timeout: 3000,
 });
 
+function createHLSStream(urls, resp) {
+    var ffmpeg = child_process.spawn("ffmpeg", [
+        "-i", urls,
+        "-c:v", "copy", "-c:a", "aac", "-hls_time", "10", "-hls_list_size", "0",
+        "-f", "hls", "pipe:1"
+    ]);
+
+    ffmpeg.stdout.pipe(resp);
+
+    ffmpeg.on("exit", function(code) {
+        console.log("ffmpeg process exited with code: " + code);
+    });
+
+    ffmpeg.on("error", function(e) {
+        console.log("ffmpeg error: " + e);
+    });
+
+    req.on("close", function() {
+        if (ffmpeg) {
+            console.log("close " + ffmpeg.pid);
+            ffmpeg.kill();
+        }
+    });
+
+    req.on("end", function() {
+        if (ffmpeg) {
+            console.log("end " + ffmpeg.pid);
+            ffmpeg.kill();
+        }
+    });
+}
+
 function return_pipe(urls, resp, req) {
     const urlParts = url.parse(req.url, true);
     const urlParams = urlParts.query;
@@ -19,12 +51,14 @@ function return_pipe(urls, resp, req) {
     if(atype == undefined) atype=0;
     else atype = Number(atype);
 
-    var xffmpeg = child_process.spawn("ffmpeg", ["-headers", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.162 Safari/537.36",
-        "-loglevel", "error", "-i", urls, "-c:a", "mp3", "-b:a", atype_list[atype]+"k", "-ar", "44100", "-ac", "2", "-bufsize", "64K", "-f", "wav", "pipe:1" // output to stdout
-   ], {
-        detached: false
-    });
+    //var xffmpeg = child_process.spawn("ffmpeg", ["-headers", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.162 Safari/537.36",
+    //    "-loglevel", "error", "-i", urls, "-c:a", "mp3", "-b:a", atype_list[atype]+"k", "-ar", "44100", "-ac", "2", "-bufsize", "64K", "-f", "wav", "pipe:1" // output to stdout
+   //], {
+     //   detached: false
+    //});
 
+    createHLSStream(urls, resp); // HLS 스트리밍 함수 호출
+	
     xffmpeg.stdout.pipe(resp);
     console.log("new input " + xffmpeg.pid);
 
