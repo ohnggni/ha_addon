@@ -1,10 +1,6 @@
-FROM ubuntu:18.04
+FROM node:18-bookworm-slim
 
-RUN apt-get update -y
-RUN apt-get install curl -y
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-
-RUN apt-get install nodejs ffmpeg -y
+RUN apt-get update -y && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY index.js /app/
