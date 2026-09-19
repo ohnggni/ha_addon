@@ -161,17 +161,13 @@ function streamMP3(urls, req, resp, bitrateK = 128, provider = null) {
   resp.write(Buffer.from([0x49,0x44,0x33,0x03,0x00,0x00,0x00,0x00,0x00,0x00]));
 
   const args = [
-    '-nostdin', '-loglevel', 'error',
-    '-analyzeduration','0', '-probesize','64k',
-    '-fflags','nobuffer', '-flags','low_delay',
-    '-rw_timeout','15000000',
-    '-reconnect','1', '-reconnect_streamed','1', '-reconnect_delay_max','2',
+    '-nostdin', '-hide_banner', '-loglevel', 'error',
+    '-rw_timeout', '15000000',
     '-user_agent', userAgent, '-headers', headers,
     '-i', urls,
-    '-map','0:a:0', '-sn','-dn',
-    '-vn','-ac','2','-ar','44100',
-    '-c:a','libmp3lame','-b:a',`${bitrateK}k`,
-    '-f','mp3','pipe:1',
+    '-map', '0:a:0', '-sn', '-dn', '-vn',
+    '-ac', '2', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', `${bitrateK}k`,
+    '-f', 'mp3', 'pipe:1',
   ];
   const ff = child_process.spawn('ffmpeg', args, { detached: false });
 
